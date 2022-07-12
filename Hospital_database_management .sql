@@ -9,8 +9,9 @@ drop table department;
 -----------------lab 01  and LAB 03--------------------
 -------table creation--------
 create table department
-  (deptName          varchar(30),
+  (
    DNUMBER        number(20) NOT NULL,
+deptName          varchar(30),
    PRIMARY KEY (dnumber)
 ) ;
 
@@ -86,8 +87,7 @@ describe appointment;
 describe medicine;
 describe payment;
 
-deptName          varchar(30),
-   DNUMBER 
+ 
 -----------------data insertion department table---------------------------------------
 insert into department(dnumber,deptname)  values(901,'Neurosurgery');
 insert into department(dnumber,deptname)  values(902,'Surgery');
@@ -120,6 +120,11 @@ insert into patient (patientid,name,address,phoneno,gender,age,birthdate,doctori
 insert into patient (patientid,name,address,phoneno,gender,age,birthdate,doctorid) values (107,'Rojina','Pabna','0187567675','female',40,'01-JAN-1982',2);
 insert into patient (patientid,name,address,phoneno,gender,age,birthdate,doctorid) values (108,'Putul','Chittagong','01926667675','female',14,'13-APR-2008',4);
 
+
+--------------doctor who is also a patient----------------------------
+insert into patient (patientid,name,address,phoneno,gender,age,birthdate,doctorid) values (109,'Dr Kawser Hasan','Khulshi','01322455662','male',22,'03-DEC-1979',5);
+
+
 -----------------------data insertion appointment table-------------------
 insert into appointment(appId,doctorid,patientid,appDate) values (1001,4,101,'01-AUG-2022');
 insert into appointment(appId,doctorid,patientid,appDate) values (1002,6,103,'03-AUG-2022');
@@ -133,7 +138,7 @@ insert into appointment(appId,doctorid,patientid,appDate) values (1008,2,107,'05
 ------------------------data insertion test table----------------------
 insert into test(testId,testname,doctorid,patientid,testResult,testDate) values (2001,'Blood Test',4,101,'negative','01-AUG-2022');
 insert into test(testId,testname,doctorid,patientid,testResult,testDate) values (2002,'Thyroid Test',6,103,'negative','03-AUG-2022');
-insert into test(testId,testname,doctorid,patientid,testResult,testDate) values (2003,'Covid Test,2,104,'positive','05-AUG-2022');
+insert into test(testId,testname,doctorid,patientid,testResult,testDate) values (2003,'Covid Test',2,104,'positive','05-AUG-2022');
 insert into test(testId,testname,doctorid,patientid,testResult,testDate) values (2004,'X-ray',4,102,'negative','01-AUG-2022');
 insert into test(testId,testname,doctorid,patientid,testResult,testDate) values (2005,'Malaria Test',4,108,'positive','02-AUG-2022');
 insert into test(testId,testname,doctorid,patientid,testResult,testDate) values (2006,'Urine analysis',8,105,'positive','01-AUG-2022');
@@ -160,7 +165,7 @@ insert into payment(payID,patientId,doctorCharge,testCharge,medCharge) values(30
 insert into payment(payID,patientId,doctorCharge,testCharge,medCharge) values(3007,107,1000,1000,1000);
 insert into payment(payID,patientId,doctorCharge,testCharge,medCharge) values(3008,108,1500,600,1500);
 
-
+select *from department;
 select *from doctor;
 select *from  patient;
 select *from  test;
@@ -197,10 +202,58 @@ describe payment;
 update doctor
 set deptname='Medicine' where name='Dr Sheikh Fazle Rabbi';
 
-select name from patient
+select *from doctor;
 
+select patientId,name FROM PATIENT WHERE patientId in(select patientId FROM payment where (testCharge+doctorCharge) BETWEEN 5000 AND 7000);
 
+select patientId,p.name,b.payID,b.doctorCharge,b.medicharge FROM PATIENT p NATURAL JOIN PAYMENT b;
 
+select name, address,age from patient order by age;
+
+----string matching------------
+select name from
+patient where
+name like '%an%';
+
+select name from
+patient where
+name like '%na%';
+
+select name from
+patient where
+name like '%na';
+-------Trigger----------------
+drop trigger chargechecking;
+create or replace trigger ChargeChecking before insert or update on payment 
+for each row
+declare
+     --maxdoctorCharge   payment.doctorCharge%type :=6000--
+     maxMedicharge     payment.Medicharge%type  :=2000;
+
+   begin 
+  if :new.medicharge>maxMedicharge  then
+    RAISE_APPLICATION_ERROR(-20000,'Medicine charge is above the bound');
+   end if;
+
+   end;
+  /
+-----trigger end--------
+
+-----------value insertion using pl/sql----------
+------start-------
+-------end-----------
+
+---------use of different aggregate function---------
+SELECT COUNT(*),COUNT(doctorCharge),SUM(doctorCharge),AVG(doctorCharge),AVG(NVL(doctorCharge,0)),MAX(doctorCharge),MIN(mediCharge),SUM(mediCharge) FROM payment;
+
+---------------union --------------------
+SELECT name,phoneNo,gender from doctor union all select name,phoneNo,gender from patient;
+
+--All the doctor's name,address,phoneNo,gender information whose is not in patient's using INTERSECT-----
+
+SELECT name,phoneNo,gender from doctor intersect select name,phoneNo,gender from patient;
+
+select p.name as patient_name, d.name as doctor_name,a.appdate from doctor d, patient p, appointment a where a.doctorid=d.doctorid and p.patientid=a.patientid;
 
 
 
