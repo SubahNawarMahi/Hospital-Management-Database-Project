@@ -304,5 +304,40 @@ END;
 /
 show errors
 
+---------------select multiple rows using pl/sql--------------------
 
-  
+
+set serveroutput on
+declare
+total_charge  payment.doctorcharge%type;
+cursor patient_cur is select payId,patientid,(doctorcharge+testcharge+medcharge)  total_Charge
+from payment;
+patient_records patient_cur%rowtype;
+
+paymentID     payment.payid%type;
+cpatientid     payment.patientid%type;
+discount      payment.doctorcharge%type;
+begin
+  open patient_cur;
+loop
+ fetch patient_cur into patient_records;
+exit when patient_cur%notfound;
+----select patient_records.payId,patient_records.patientid,patient_records.totalcharge into paymentID,cpatientid,total_charge from payment;---------
+dbms_output.put_line('The total charge of the patient is : '||patient_records.total_charge||' with patientid '|| patient_records.patientid||' and payid '||patient_records.payId);
+ if patient_records.total_charge< 2000 then  
+      discount := patient_records.total_charge;
+elsif patient_records.total_charge>=2000 and patient_records.total_charge<3000 then
+      discount :=  patient_records.total_charge - (patient_records.total_charge*0.25);
+elsif patient_records.total_charge>=3000 and patient_records.total_charge<5000 then
+      discount :=  patient_records.total_charge - (patient_records.total_charge*0.4);
+else
+   discount :=  patient_records.total_charge - (patient_records.total_charge*0.5);
+end if;
+
+dbms_output.put_line(cpatientid || ' total_charge: ' || patient_records.total_charge|| ' discounted charge: '||round(discount,2));
+end loop;
+close patient_cur;
+
+END;
+/
+show errors
