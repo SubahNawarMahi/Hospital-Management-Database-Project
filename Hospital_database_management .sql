@@ -155,6 +155,25 @@ insert into medicine(code,name,descrip,price,patientId) values(506,'Femastin','F
 insert into medicine(code,name,descrip,price,patientId) values(507,'Fexo','Seasonal allergic rhinitis idiopathic urticaria',600,107);
 insert into medicine(code,name,descrip,price,patientId) values(508,'Comet','Management of type 2 diabetes mellitus',400,108);
 
+
+-------Trigger----------------
+drop trigger chargechecking;
+create or replace trigger ChargeChecking before insert or update on payment 
+for each row
+declare
+     --maxdoctorCharge   payment.doctorCharge%type :=6000--
+     maxMedcharge     payment.Medcharge%type  :=2000;
+
+   begin 
+  if :new.medcharge>maxMedcharge  then
+    RAISE_APPLICATION_ERROR(-20000,'Medicine charge is above the bound');
+   end if;
+
+   end;
+  /
+-----trigger end--------
+
+
 -----------------------data insertion payment table--------------
 insert into payment(payID,patientId,doctorCharge,testCharge,medCharge) values(3001,101,2000,300,100);
 insert into payment(payID,patientId,doctorCharge,testCharge,medCharge) values(3002,102,2500,250,200);
@@ -222,22 +241,7 @@ name like '%na%';
 select name from
 patient where
 name like '%na';
--------Trigger----------------
-drop trigger chargechecking;
-create or replace trigger ChargeChecking before insert or update on payment 
-for each row
-declare
-     --maxdoctorCharge   payment.doctorCharge%type :=6000--
-     maxMedicharge     payment.Medicharge%type  :=2000;
 
-   begin 
-  if :new.medicharge>maxMedicharge  then
-    RAISE_APPLICATION_ERROR(-20000,'Medicine charge is above the bound');
-   end if;
-
-   end;
-  /
------trigger end--------
 
 -----------value insertion using pl/sql----------
 ------start-------
@@ -255,5 +259,50 @@ SELECT name,phoneNo,gender from doctor intersect select name,phoneNo,gender from
 
 select p.name as patient_name, d.name as doctor_name,a.appdate from doctor d, patient p, appointment a where a.doctorid=d.doctorid and p.patientid=a.patientid;
 
+--------------test details of patient using natural join----------------------------
+select p.name as patient_name , t.testId,t.testname,t.testresult from patient p,test t where t.patientid=p.patientid;
+select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p natural join test t;
+------------------cross join----------------------------
+select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p cross join test t;
+------------------------inner join----------------------
+select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p inner join test t on p.patientid=t.patientid;
+-----------------------left outer join----------------------
+select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p left outer join test t on p.patientid=t.patientid;
+----------------------right outer join-------------------------
+select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p right outer join test t on p.patientid=t.patientid;
+--------------------------self join------------------------
 
 
+
+
+----------calculating discount price through pl/sql-------------------
+set serveroutput on
+declare
+total_charge  payment.doctorcharge%type;
+paymentID     payment.payid%type;
+cpatientid     payment.patientid%type;
+discount      payment.doctorcharge%type;
+begin
+  select payId,patientid,(doctorcharge+testcharge+medcharge) into paymentID,cpatientid,total_charge from payment
+where patientid=101;
+dbms_output.put_line('The total charge of the patient is : '||total_charge||' with patientid '|| cpatientid||' and payid '||paymentid);
+ if total_charge< 2000 then  
+      discount := total_charge;
+elsif total_charge>=2000 and total_charge<3000 then
+      discount :=  total_charge - (total_charge*0.25);
+elsif total_charge>=3000 and total_charge<5000 then
+      discount :=  total_charge - (total_charge*0.4);
+else
+   discount :=  total_charge - (total_charge*0.5);
+end if;
+
+dbms_output.put_line(cpatientid || ' total_charge: ' || total_charge|| 'discounted charge: '||round(discount,2));
+EXCEPTION
+ WHEN others THEN
+ DBMS_OUTPUT.PUT_LINE (SQLERRM);
+END;
+/
+show errors
+
+
+  
