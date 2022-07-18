@@ -6,7 +6,7 @@ drop table patient;
 drop table doctor;
 drop table department;
 
------------------lab 01  and LAB 03--------------------
+-----------------lab 01  to LAB 03--------------------
 -------table creation--------
 create table department
   (
@@ -192,88 +192,6 @@ select *from appointment;
 select *from medicine;
 select *from payment;
 
-------------------------LAB 02-------------------------------------------
-------------adding a new column----------------
-alter table doctor
-add address varchar(50);
-
-describe doctor;
-
-----------------drop a column--------------------------
-alter table doctor
-drop column address;
-
-describe doctor;
-
------------modify-----------------
-
-alter table payment
-modify medcharge NUMBER(20,3);
-
----------------rename------------------
-
-alter table payment
-rename  column medcharge to medicharge;
-
-describe payment;
-
------------
-update doctor
-set deptname='Medicine' where name='Dr Sheikh Fazle Rabbi';
-
-select *from doctor;
-
-select patientId,name FROM PATIENT WHERE patientId in(select patientId FROM payment where (testCharge+doctorCharge) BETWEEN 5000 AND 7000);
-
-select patientId,p.name,b.payID,b.doctorCharge,b.medicharge FROM PATIENT p NATURAL JOIN PAYMENT b;
-
-select name, address,age from patient order by age;
-
-----string matching------------
-select name from
-patient where
-name like '%an%';
-
-select name from
-patient where
-name like '%na%';
-
-select name from
-patient where
-name like '%na';
-
-
------------value insertion using pl/sql----------
-------start-------
--------end-----------
-
----------use of different aggregate function---------
-SELECT COUNT(*),COUNT(doctorCharge),SUM(doctorCharge),AVG(doctorCharge),AVG(NVL(doctorCharge,0)),MAX(doctorCharge),MIN(mediCharge),SUM(mediCharge) FROM payment;
-
----------------union --------------------
-SELECT name,phoneNo,gender from doctor union all select name,phoneNo,gender from patient;
-
---All the doctor's name,address,phoneNo,gender information whose is not in patient's using INTERSECT-----
-
-SELECT name,phoneNo,gender from doctor intersect select name,phoneNo,gender from patient;
-
-select p.name as patient_name, d.name as doctor_name,a.appdate from doctor d, patient p, appointment a where a.doctorid=d.doctorid and p.patientid=a.patientid;
-
---------------test details of patient using natural join----------------------------
-select p.name as patient_name , t.testId,t.testname,t.testresult from patient p,test t where t.patientid=p.patientid;
-select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p natural join test t;
-------------------cross join----------------------------
-select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p cross join test t;
-------------------------inner join----------------------
-select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p inner join test t on p.patientid=t.patientid;
------------------------left outer join----------------------
-select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p left outer join test t on p.patientid=t.patientid;
-----------------------right outer join-------------------------
-select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p right outer join test t on p.patientid=t.patientid;
---------------------------self join------------------------
-
-
-
 
 ----------calculating discount price through pl/sql-------------------
 set serveroutput on
@@ -340,4 +258,210 @@ close patient_cur;
 
 END;
 /
-show errors
+------------------------LAB 02-------------------------------------------
+------------adding a new column----------------
+alter table doctor
+add address varchar(50);
+
+describe doctor;
+
+----------------drop a column--------------------------
+alter table doctor
+drop column address;
+
+describe doctor;
+
+-----------modify-----------------
+
+alter table payment
+modify medcharge NUMBER(20,3);
+
+---------------rename------------------
+
+alter table payment
+rename  column medcharge to medicharge;
+
+describe payment;
+
+-----------update table info--------------
+update doctor
+set deptname='Medicine' where name='Dr Sheikh Fazle Rabbi';
+
+select *from doctor;
+
+---------nested query-----------------------
+
+select patientId,name FROM PATIENT WHERE patientId in(select patientId FROM payment where (testCharge+doctorCharge) BETWEEN 2000 AND 3000);
+select patientId,name FROM PATIENT WHERE patientId in(select patientId FROM payment where (testCharge+doctorCharge) NOT BETWEEN 2000 AND 3000);
+---2nd highest total_charge---------
+select max(doctorcharge+testcharge+medicharge) as total_charge from payment where 
+(doctorcharge+testcharge+medicharge) not in(select max(doctorcharge+testcharge+medicharge) from payment);
+
+
+----string matching with patient name------------
+select name from
+patient where
+name like '%an%';
+
+select name from
+patient where
+name like '%na%';
+
+select name from
+patient where
+name like '%na';
+
+--------showing doctors of department name Medicine----------
+
+select name,deptname as department_medicine
+from doctor
+ where deptname like '%Medicine%';
+
+--------------------appointment details of patient------------------------------
+select p.name as patient_name, d.name as doctor_name,a.appdate from doctor d, patient p, appointment a where a.doctorid=d.doctorid and p.patientid=a.patientid;
+
+
+-----------value insertion using pl/sql----------
+------start-------
+-------end-----------
+
+---------use of different aggregate function---------
+SELECT COUNT(*),COUNT(doctorCharge),SUM(doctorCharge),AVG(doctorCharge),AVG(NVL(doctorCharge,0)),MAX(doctorCharge),MIN(mediCharge),SUM(mediCharge) FROM payment;
+
+--------select distinct method---------
+select distinct (patientid) from appointment;
+--------select distinct method and order by---------
+select distinct (patientid) from appointment order by patientid;
+
+-------------order by-------
+select name, address,age from patient order by age;
+
+------use of group by clause--------
+select count(deptname),deptname from doctor group by deptname;
+select count(deptname),deptname from doctor where doctorid>2 group by deptname;
+
+-----use of having clause-----------
+select count(deptname),deptname from doctor group by deptname having deptname='Medicine';
+
+-------use of in-------
+
+
+---------------union--------------------
+SELECT name,phoneNo,gender from doctor union  select name,phoneNo,gender from patient;
+
+---------------union all--------------------
+SELECT name,phoneNo,gender from doctor union all select name,phoneNo,gender from patient;
+
+-- using Intersect the doctor's name,address,phoneNo,gender information whose is not in patient's-----
+
+SELECT name,phoneNo,gender from doctor intersect select name,phoneNo,gender from patient;
+----------minus----------
+SELECT name,phoneNo,gender from doctor minus select name,phoneNo,gender from patient;
+
+
+--------------test details of patient using natural join----------------------------
+
+select p.name as patient_name , t.testId,t.testname,t.testresult from patient p,test t where t.patientid=p.patientid;
+select patientid,name as patient_name , testId,testname,testresult from patient p natural join test t;
+select patientId,p.name,b.payID,b.doctorCharge,b.medicharge FROM PATIENT p NATURAL JOIN PAYMENT b;
+
+------------------cross join----------------------------
+select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p cross join test t;
+
+------------------------inner join----------------------
+select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p inner join test t on p.patientid=t.patientid;
+
+-----------------------left outer join----------------------
+select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p left outer join test t on p.patientid=t.patientid;
+
+----------------------right outer join-------------------------
+select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult from patient p right outer join test t on p.patientid=t.patientid;
+
+--------------------------self join------------------------
+
+
+----------procedure---------------------------
+set serveroutput on;
+create or replace procedure
+UpdateAppointment(pId appointment.patientid%type,dId appointment.doctorid%type,aId appointment.appid%type,newDate appointment.appdate%type)
+is 
+begin
+update appointment set appdate=newdate
+where patientId=pId and doctorid=did;
+commit;
+end updateappointment;
+/
+select *from appointment;
+------------update appointment using procedure---------------
+begin
+updateappointment(101,4,1001,'12-aug-22');
+end;
+/
+---------------------------------------------------------------------
+
+-------------function------------------------------------
+set serveroutput on;
+create or replace function
+calc_charge (pid paym	ent.payid%type) return number is
+total_charge payment.doctorcharge%type;
+begin
+ select (doctorcharge+medicharge+testcharge) into total_charge from payment
+where payid=pid;
+
+return total_charge;
+end calc_charge;
+/
+--------calling the function by passing value----------------
+set serveroutput on
+declare id payment.payid%type;
+begin
+dbms_output.put_line('the total for patient with payid '|| '3001 '||'is: '||calc_charge(3001));
+end;
+/
+----------------transaction manager,rollback,savepoints-----------------------------
+select *from appointment;
+
+insert into appointment(appid,doctorid,patientid,appdate) values(1009,1,103,'07-AUG-2022');
+
+savepoint A;
+
+select *from appointment;
+
+insert into appointment(appid,doctorid,patientid,appdate) values(1010,1,104,'07-AUG-2022');
+
+savepoint B;
+
+select *from appointment;
+
+insert into appointment(appid,doctorid,patientid,appdate) values(1011,1,108,'07-AUG-2022');
+
+select *from appointment;
+
+rollback to savepoint B;
+select *from appointment;
+rollback to save point A;
+select *from appointment;
+
+commit;
+
+delete appointment;
+select *from appointment;
+rollback;
+select *from appointment;
+-------------system date----------
+select sysdate from dual;
+select current_date from dual;
+select systimestamp from dual;
+select *from test;
+-------------view test table without test result---------------------
+create view show_test as
+select testid,testname,doctorid,patientid,testdate
+from test;
+select *from show_test;
+-----------view appointment details-----------
+create view app_details as
+select p.name as patient_name, d.name as doctor_name,a.appdate 
+from doctor d, patient p, appointment a 
+where a.doctorid=d.doctorid and p.patientid=a.patientid;
+select *from app_details;
+
