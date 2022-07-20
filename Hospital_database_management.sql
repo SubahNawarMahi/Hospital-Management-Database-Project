@@ -630,3 +630,9 @@ from doctor d, patient p, appointment a
 where a.doctorid=d.doctorid and p.patientid=a.patientid;
 select *from app_details;
 
+set serveroutput on
+begin
+dbms_output.put_line('End of Project');
+end;
+/
+
