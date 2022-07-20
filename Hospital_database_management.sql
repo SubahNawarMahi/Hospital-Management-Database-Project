@@ -598,7 +598,7 @@ select *from appointment;
 
 rollback to savepoint B;
 select *from appointment;
-rollback to save point A;
+rollback to savepoint A;
 select *from appointment;
 
 commit;
