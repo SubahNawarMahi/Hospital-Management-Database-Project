@@ -210,7 +210,7 @@ rename  column medicharge to medcharge;
 
 -----------update table info--------------
 update doctor
-set deptname='Medicine' where name='Dr Sheikh Fazle Rabbi';
+set deptname='Medicine', dnumber=904 where name='Dr Sheikh Fazle Rabbi';
 
 select *from doctor;
 
@@ -225,11 +225,13 @@ select distinct (patientid) from appointment;
 
 --------order by--------------
 select name, address,age from patient order by age;
+select patientid,name,age from patient order by age,patientid;
 
 --------select distinct method and order by---------
 select distinct (patientid) from appointment order by patientid ;
 select distinct (patientid) from appointment order by patientid desc;
 
+--------lab 04-----------------
 ---------use of different aggregate function(count,sum,max,min,avg)---------
 SELECT COUNT(*),COUNT(doctorCharge),
 SUM(doctorCharge),
@@ -243,10 +245,12 @@ FROM payment;
 
 ------use of group by clause--------
 select count(deptname),deptname from doctor group by deptname;
-select count(deptname),deptname from doctor where doctorid>2 group by deptname;
+select count(deptname),deptname from doctor 
+where doctorid>2 group by deptname;
 
 -----use of having clause-----------
-select count(deptname),deptname from doctor group by deptname having deptname='Medicine';
+select count(deptname),deptname from doctor 
+group by deptname having deptname='Medicine';
 
 ------------use of in-------
 select patientid,name
@@ -265,8 +269,8 @@ select payid,patientid,doctorcharge,testcharge,medcharge from payment
  where patientid in(select patientid from patient where name like '%Subah%');
 
 ---2nd highest total_charge---------
-select max(doctorcharge+testcharge+medicharge) as total_charge from payment where 
-(doctorcharge+testcharge+medicharge) not in(select max(doctorcharge+testcharge+medicharge) from payment);
+select max(doctorcharge+testcharge+medcharge) as total_charge from payment where 
+(doctorcharge+testcharge+medcharge) not in(select max(doctorcharge+testcharge+medcharge) from payment);
 
 ---------------union--------------------
 SELECT name,phoneNo,gender from doctor union  select name,phoneNo,gender from patient;
@@ -304,7 +308,7 @@ where name='Tuna';
 
 
 
-----string matching with patient name------------
+----pattern matching with patient name------------
 select name from
 patient where
 name like '%an%';
@@ -325,14 +329,18 @@ from doctor
 
 --------------------appointment details of patient------------------------------
 select p.name as patient_name, d.name as doctor_name,a.appdate from 
-doctor d, patient p, appointment a where a.doctorid=d.doctorid and p.patientid=a.patientid;
+doctor d, patient p, appointment a where a.doctorid=d.doctorid and 
+p.patientid=a.patientid;
 
 
 
 
---------------test details of patient using natural join----------------------------
+--------------lab 06 -----------
+select name,deptname from doctor join department using(dnumber,deptname);
+----------test details of patient using natural join----------------------------
 
-select patientid,name as patient_name , testId,testname,testresult from patient p natural join test t;
+select patientid,name as patient_name , testId,testname,
+testresult from patient p natural join test t;
 
 -------------payment details using natrual join------------------
 select patientId,p.name,b.payID,b.doctorCharge,b.medcharge FROM PATIENT p NATURAL JOIN PAYMENT b;
@@ -351,6 +359,10 @@ from patient p left outer join test t on p.patientid=t.patientid;
 ----------------------right outer join-------------------------
 select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult 
 from patient p right outer join test t on p.patientid=t.patientid;
+
+----------full outer join----------
+select p.patientid,p.name as patient_name , t.testId,t.testname,t.testresult 
+from patient p full outer join test t on p.patientid=t.patientid;
 
 --------------------------self join------------------------
 select p.doctorcharge, d.doctorcharge
@@ -540,7 +552,7 @@ calc_charge (pid IN payment.payid%type)
 return number is
 total_charge payment.doctorcharge%type;
 begin
- select (doctorcharge+medicharge+testcharge) into total_charge from payment
+ select (doctorcharge+medcharge+testcharge) into total_charge from payment
 where payid=pid;
 
 return total_charge;
